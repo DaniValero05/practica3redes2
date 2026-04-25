@@ -1,0 +1,22 @@
+{% extends 'app/base.html' %}
+{% block content %}
+
+<table class="table table-sm table-bordered">
+    <tr><td>UID</td><td>{{device.uid}}</td></tr>
+    <tr><td>Name</td><td>{{device.name}}</td></tr>
+    <tr><td>Type</td><td>
+        {% if device.is_sensor %}
+        Sensor
+        {% else %}
+        Switch
+        {% endif %}
+    </td></tr>
+
+</table>
+<a class="btn btn-default" href="{% url 'app:device_edit' pk=device.pk %}"><span class="glyphicon glyphicon-pencil"></span></a>
+<a class="btn btn-danger" href="{% url 'app:device_remove' pk=device.pk %}"><span class="glyphicon glyphicon-remove"></span></a>
+
+
+<p><a href="{% url 'app:devices' %}">Back</a></p>
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'app/base.html' %}
+{% block content %}
+<h2>Reglas de Automatización</h2>
+<a href="{% url 'app:rule_new' %}" class="btn btn-primary mb-3"><i class="bi-plus-circle"></i> Nueva Regla</a>
+
+{% if rules %}
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Si... (Disparador)</th>
+            <th>Condición</th>
+            <th>Entonces... (Acción)</th>
+            <th>Opciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rule in rules %}
+        <tr>
+            <td>{{ rule.name }}</td>
+            <td>{{ rule.trigger_device.name }} ({{ rule.trigger_device.uid }})</td>
+            <td>{{ rule.operator }} {{ rule.condition_value }}</td>
+            <td>{{ rule.target_device.uid }} = {{ rule.action_command }}</td>
+            <td>
+                <a class="btn btn-sm btn-info" href="{% url 'app:rule_edit' pk=rule.pk %}"><i class="bi-pencil"></i></a>
+                <a class="btn btn-sm btn-danger" href="{% url 'app:rule_remove' pk=rule.pk %}"><i
+                        class="bi-trash"></i></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No hay reglas configuradas.</p>
+{% endif %}
+<p><a href="{% url 'app:devices' %}">Ver Dispositivos</a></p>
+{% endblock %}

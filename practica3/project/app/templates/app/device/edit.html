@@ -1,0 +1,16 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+
+
+<h3>Edit device '{{ form.instance.name}}' {{ form.instance.uid }}</h3>
+
+<form action="{% url 'app:device_edit' form.instance.id %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+
+<p><a href="{% url 'app:devices' %}">Back</a></p>
+
+{% endblock %}

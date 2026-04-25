@@ -1,0 +1,24 @@
+{% extends 'app/base.html' %}
+{% block content %}
+<h2>Historial de Eventos Internos</h2>
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th>Hora</th>
+            <th>Dispositivo</th>
+            <th>Tipo</th>
+            <th>Descripción</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for event in events %}
+        <tr class="{% if event.event_type == 'ACCIÓN' %}table-success{% endif %}">
+            <td>{{ event.timestamp|date:"H:i:s" }}</td>
+            <td>{{ event.device_uid }}</td>
+            <td>{{ event.event_type }}</td>
+            <td>{{ event.description }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

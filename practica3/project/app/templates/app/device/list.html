@@ -1,0 +1,73 @@
+
+{% extends 'app/base.html' %}
+
+{% block content %}
+<h2>Devices</h2>
+<a href="{% url 'app:device_new' %}" class="top-menu"><i class="bi-plus-circle" style="font-size: 1.5rem"></i></a>
+
+{% if devices %}
+<table class="table table-bordered table-stripped">
+    <thead>
+        <tr>
+            <td>uid</td>
+            <td>name</td>
+            <td>type</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </thead>
+    <tbody>
+    {% for device in devices %}
+    <tr>
+        <td>{{ device.uid }}</td>
+        <td>{{ device.name }}</td>
+        <td>
+            {% if device.is_sensor %}
+            Sensor
+            {% else %}
+            Switch
+            {% endif %}
+        </td>
+        <td>
+            <a class="btn btn-default" href="{% url 'app:device_edit' pk=device.pk %}"><i class="bi-pencil"></i></a>
+        </td>
+            <td>
+            <!-- <a class="btn btn-default" href="{% url 'app:device_remove' pk=device.pk %}"><i class="bi-trash" style="color: red"></i></a> -->
+            <!-- <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#removeDeviceModal"><i class="bi-trash" ></i></button> -->
+            <!-- <a class="btn btn-default" href="{% url 'app:device_remove' pk=device.pk %}"><i class="bi-trash" style="color: red"></i></a> -->
+            <a class="btn btn-default" href="#" data-toggle="modal" data-target="#removeDeviceModal" onclick="set_selected_device({{device.id}})"><i class="bi-trash" style="color: red"></i></a> 
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p>No devices yet</p>
+{% endif %}
+
+<div class="modal fade" id="removeDeviceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Remove</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <a class="btn btn-primary" id="removeDeviceLink" href="{% url 'app:device_remove' pk=1 %}">Yes</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+    function set_selected_device(value){
+        $("#removeDeviceLink").attr("href", "/device/" + value + "/remove/");
+    }
+</script>
+
+{% endblock %}

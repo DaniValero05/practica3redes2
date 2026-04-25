@@ -1,0 +1,10 @@
+{% extends 'app/base.html' %}
+{% block content %}
+<h3>Crear Nueva Regla</h3>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Guardar Regla</button>
+</form>
+<p><a href="{% url 'app:rules' %}">Cancelar</a></p>
+{% endblock %}
