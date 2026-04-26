@@ -1,8 +1,43 @@
 {% extends 'app/base.html' %}
 {% block content %}
 
-<h2>Configuration</h2>
+<div class="jumbotron">
+  <h1 class="display-4"><i class="bi-house-door"></i> Sistema Domótico</h1>
+  <p class="lead">Panel de control del sistema de domótica basado en MQTT y Django.</p>
+  <hr class="my-4">
+  <p>Gestiona dispositivos IoT, define reglas de automatización y consulta el historial de eventos.</p>
+</div>
 
+<div class="row">
+  <div class="col-md-4 mb-3">
+    <div class="card text-white bg-primary">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi-cpu"></i> Dispositivos</h5>
+        <p class="card-text">Añade, edita y elimina sensores, interruptores y relojes registrados en el sistema.</p>
+        <a href="{% url 'app:devices' %}" class="btn btn-light">Ver Dispositivos</a>
+      </div>
+    </div>
+  </div>
 
+  <div class="col-md-4 mb-3">
+    <div class="card text-white bg-success">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi-diagram-3"></i> Reglas</h5>
+        <p class="card-text">Define reglas de automatización: si un sensor supera un umbral, activa un actuador.</p>
+        <a href="{% url 'app:rules' %}" class="btn btn-light">Ver Reglas</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 mb-3">
+    <div class="card text-white bg-secondary">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi-journal-text"></i> Eventos</h5>
+        <p class="card-text">Consulta el historial de telemetría recibida y acciones ejecutadas por el controlador.</p>
+        <a href="{% url 'app:events' %}" class="btn btn-light">Ver Eventos</a>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}
