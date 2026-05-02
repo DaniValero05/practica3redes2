@@ -27,6 +27,11 @@ class Rule(models.Model):
         ("<", "Menor que"),
     ]
 
+    CONDITION_TYPE_CHOICES = [
+        ("numeric", "Numérico"),
+        ("time", "Hora (HH:MM:SS)"),
+    ]
+
     name = models.CharField(max_length=100, help_text="Nombre de la regla")
     trigger_device = models.ForeignKey(
         Device,
@@ -37,7 +42,23 @@ class Rule(models.Model):
     operator = models.CharField(
         max_length=2, choices=OPERATOR_CHOICES, help_text="Operador de comparación"
     )
-    condition_value = models.FloatField(help_text="Valor a comparar")
+    condition_type = models.CharField(
+        max_length=10,
+        choices=CONDITION_TYPE_CHOICES,
+        default="numeric",
+        help_text="Tipo de condición: numérica o de hora",
+    )
+    condition_value = models.FloatField(
+        help_text="Valor numérico a comparar (si el tipo es numérico)",
+        null=True,
+        blank=True,
+    )
+    condition_time = models.CharField(
+        max_length=8,
+        help_text="Hora a comparar en formato HH:MM:SS (si el tipo es hora)",
+        null=True,
+        blank=True,
+    )
     target_device = models.ForeignKey(
         Device,
         related_name="rules_targeted",
@@ -48,8 +69,19 @@ class Rule(models.Model):
         max_length=50, help_text="Comando a enviar (ej. ON, OFF)"
     )
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.condition_type == "numeric" and self.condition_value is None:
+            raise ValidationError("Se requiere un valor numérico para condiciones de tipo numérico.")
+        if self.condition_type == "time" and not self.condition_time:
+            raise ValidationError("Se requiere una hora en formato HH:MM:SS para condiciones de tipo hora.")
+
     def __str__(self):
-        return f"{self.name}: Si {self.trigger_device.uid} {self.operator} {self.condition_value} -> {self.target_device.uid} = {self.action_command}"
+        if self.condition_type == "time":
+            cond = self.condition_time
+        else:
+            cond = self.condition_value
+        return f"{self.name}: Si {self.trigger_device.uid} {self.operator} {cond} -> {self.target_device.uid} = {self.action_command}"
 
 
 class Event(models.Model):

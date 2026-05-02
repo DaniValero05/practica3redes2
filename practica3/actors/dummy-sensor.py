@@ -21,12 +21,12 @@ class DummySensor:
         self.base_topic = f"redes2/{GRUPO}/{PAREJA}/{self.sensor_id}" # Topic base para publicar el estado actual del sensor
 
         # Configuración del cliente MQTT
-        self.client = mqtt.Client(client_id=f"sensor_{GRUPO}_{PAREJA}_{self.sensor_id}")
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=f"sensor_{GRUPO}_{PAREJA}_{self.sensor_id}")
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
         self.client.on_message = self.on_message
 
-    def on_connect(self, client, _userdata, _flags, rc):
+    def on_connect(self, client, _userdata, _flags, rc, _properties):
         if rc == 0:
             # Al suscrbirnos el broker creará esos canales si no existen
             print("Conectado exitosamente al broker.")
@@ -36,7 +36,7 @@ class DummySensor:
         else:
             print(f"Error al conectar. Código de resultado: {rc}")
 
-    def on_disconnect(self, _client, _userdata, rc):
+    def on_disconnect(self, _client, _userdata, _flags,  rc, _properties):
         if rc != 0:
             print(f"Desconectado inesperadamente. Código de resultado: {rc}")
         else:
@@ -88,7 +88,7 @@ class DummySensor:
 def main():
     """Función principal que procesa los argumentos e inicia el dispositivo."""
     parser = argparse.ArgumentParser(description="Dispositivo IoT Dummy Sensor")
-    parser.add_argument("--host", "-H", type=str, default="redes2.ii.uam.es", help="Host del broker MQTT")
+    parser.add_argument("--host", "-H", type=str, default="localhost", help="Host del broker MQTT")
     parser.add_argument("--port", "-p", type=int, default=1883, help="Puerto del broker MQTT")
     parser.add_argument("--interval", "-i", type=float, default=1.0, help="Tiempo en segundos tras los que simula un cambio de estado")
     parser.add_argument("--min", "-m", type=int, default=20, help="Valor mínimo a enviar")

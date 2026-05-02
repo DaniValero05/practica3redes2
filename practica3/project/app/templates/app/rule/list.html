@@ -19,12 +19,17 @@
         <tr>
             <td>{{ rule.name }}</td>
             <td>{{ rule.trigger_device.name }} ({{ rule.trigger_device.uid }})</td>
-            <td>{{ rule.operator }} {{ rule.condition_value }}</td>
+            <td>
+                {% if rule.condition_type == "time" %}
+                    {{ rule.operator }} {{ rule.condition_time }} <small class="text-muted">(hora)</small>
+                {% else %}
+                    {{ rule.operator }} {{ rule.condition_value }} <small class="text-muted">(numérico)</small>
+                {% endif %}
+            </td>
             <td>{{ rule.target_device.uid }} = {{ rule.action_command }}</td>
             <td>
                 <a class="btn btn-sm btn-info" href="{% url 'app:rule_edit' pk=rule.pk %}"><i class="bi-pencil"></i></a>
-                <a class="btn btn-sm btn-danger" href="{% url 'app:rule_remove' pk=rule.pk %}"><i
-                        class="bi-trash"></i></a>
+                <a class="btn btn-sm btn-danger" href="{% url 'app:rule_remove' pk=rule.pk %}"><i class="bi-trash"></i></a>
             </td>
         </tr>
         {% endfor %}

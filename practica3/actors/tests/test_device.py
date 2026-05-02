@@ -50,7 +50,7 @@ class TestDummySwitchConnection(unittest.TestCase):
         mock_client = MagicMock()
         mock_mqtt_class.return_value = mock_client
 
-        switch = DummySwitch("redes2.ii.uam.es", 1883, 0.0, "sw1")
+        switch = DummySwitch("localhost", 1883, 0.0, "sw1")
         mock_client.connect.return_value = None
         mock_client.loop_forever.side_effect = KeyboardInterrupt  # para terminar el bucle
 
@@ -59,7 +59,7 @@ class TestDummySwitchConnection(unittest.TestCase):
         except SystemExit:
             pass
 
-        mock_client.connect.assert_called_once_with("redes2.ii.uam.es", 1883, 60)
+        mock_client.connect.assert_called_once_with("localhost", 1883, 60)
 
     @patch("paho.mqtt.client.Client")
     def test_connect_failure_raises(self, mock_mqtt_class):
@@ -85,13 +85,13 @@ class TestDummySwitchCLI(unittest.TestCase):
             import argparse
 
             parser = argparse.ArgumentParser()
-            parser.add_argument("--host", "-H", type=str, default="redes2.ii.uam.es")
+            parser.add_argument("--host", "-H", type=str, default="localhost")
             parser.add_argument("--port", "-p", type=int, default=1883)
             parser.add_argument("--probability", "-P", type=float, default=0.3)
             parser.add_argument("id", type=str)
             args = parser.parse_args(["sw_test"])
 
-            self.assertEqual(args.host, "redes2.ii.uam.es")
+            self.assertEqual(args.host, "localhost")
             self.assertEqual(args.port, 1883)
             self.assertAlmostEqual(args.probability, 0.3)
             self.assertEqual(args.id, "sw_test")
@@ -101,7 +101,7 @@ class TestDummySwitchCLI(unittest.TestCase):
         import argparse
 
         parser = argparse.ArgumentParser()
-        parser.add_argument("--host", "-H", type=str, default="redes2.ii.uam.es")
+        parser.add_argument("--host", "-H", type=str, default="localhost")
         parser.add_argument("--port", "-p", type=int, default=1883)
         parser.add_argument("--probability", "-P", type=float, default=0.3)
         parser.add_argument("id", type=str)
@@ -194,7 +194,7 @@ class TestDummySensorConnection(unittest.TestCase):
         mock_mqtt_class.return_value = mock_client
         mock_client.loop_start.return_value = None
 
-        sensor = DummySensor("redes2.ii.uam.es", 1883, "s1", interval=100)
+        sensor = DummySensor("localhost", 1883, "s1", interval=100)
         # Simulamos start() con KeyboardInterrupt para salir del while True
         mock_client.connect.return_value = None
         with patch("time.sleep", side_effect=KeyboardInterrupt):
@@ -203,7 +203,7 @@ class TestDummySensorConnection(unittest.TestCase):
             except (KeyboardInterrupt, SystemExit):
                 pass
 
-        mock_client.connect.assert_called_once_with("redes2.ii.uam.es", 1883, 60)
+        mock_client.connect.assert_called_once_with("localhost", 1883, 60)
 
     @patch("paho.mqtt.client.Client")
     def test_connect_failure(self, mock_mqtt_class):
@@ -227,7 +227,7 @@ class TestDummySensorCLI(unittest.TestCase):
         import argparse
 
         parser = argparse.ArgumentParser()
-        parser.add_argument("--host", "-H", type=str, default="redes2.ii.uam.es")
+        parser.add_argument("--host", "-H", type=str, default="localhost")
         parser.add_argument("--port", "-p", type=int, default=1883)
         parser.add_argument("--interval", "-i", type=float, default=1.0)
         parser.add_argument("--min", "-m", type=int, default=20)
@@ -236,7 +236,7 @@ class TestDummySensorCLI(unittest.TestCase):
         parser.add_argument("id", type=str)
         args = parser.parse_args(["sensor1"])
 
-        self.assertEqual(args.host, "redes2.ii.uam.es")
+        self.assertEqual(args.host, "localhost")
         self.assertEqual(args.port, 1883)
         self.assertEqual(args.interval, 1.0)
         self.assertEqual(args.min, 20)

@@ -19,12 +19,12 @@ class DummySwitch:
         self.command_topic = f"{self.base_topic}/set" # Topic para recibir comandos de cambio de estado (ON/OFF)
 
         # Configuración del cliente MQTT
-        self.client = mqtt.Client(client_id=f"switch_{GRUPO}_{PAREJA}_{self.switch_id}")
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=f"switch_{GRUPO}_{PAREJA}_{self.switch_id}")
         self.client.on_connect = self.on_connect # Callback para conexión
         self.client.on_disconnect = self.on_disconnect # Callback para desconexión
         self.client.on_message = self.on_message # Callback para mensajes recibidos
 
-    def on_connect(self, client, _userdata, _flags, rc):
+    def on_connect(self, client, _userdata, _flags, rc, _properties):
         """Callback que se ejecuta al conectar con el broker.
 
         Args:
@@ -42,6 +42,13 @@ class DummySwitch:
             client.publish(self.base_topic, self.current_state,qos=1, retain=True) # retain: lo guarda en memoria 
         else:
             print(f"Error al conectar. Código de resultado: {rc}")
+
+    def on_disconnect(self, _client, _userdata, _flags,  rc, _properties):
+        """Callback que se ejecuta al desconectar del broker."""
+        if rc != 0:
+            print(f"[!] Desconectado inesperadamente. Código de resultado: {rc}")
+        else:
+            print("[*] Desconectado del broker.")
 
     def on_message(self, client, _userdata, msg):
         """Callback que se ejecuta al recibir un mensaje en un topic suscrito."""
@@ -71,13 +78,6 @@ class DummySwitch:
                 print("\n[>] Petición de estado recibida. Respondiendo...")
                 client.publish(self.base_topic, self.current_state, retain=True)
 
-    def on_disconnect(self, _client, _userdata, rc):
-        """Callback que se ejecuta al desconectar del broker."""
-        if rc != 0:
-            print(f"[!] Desconectado inesperadamente. Código de resultado: {rc}")
-        else:
-            print("[*] Desconectado del broker.")
-
     def start(self):
         """Inicia la conexión y el bucle principal del interruptor."""
         print(f"Iniciando Dummy Switch [ID: {self.switch_id}]")
@@ -99,7 +99,7 @@ def main():
     """Función principal que procesa los argumentos e inicia el dispositivo."""
     # Lectura de argumentos por línea de comandos
     parser = argparse.ArgumentParser(description="Dispositivo IoT Dummy Switch")
-    parser.add_argument("--host", "-H", type=str, default="redes2.ii.uam.es", help="Host del broker MQTT")
+    parser.add_argument("--host", "-H", type=str, default="localhost", help="Host del broker MQTT")
     parser.add_argument("--port", "-p", type=int, default=1883, help="Puerto del broker MQTT")
     parser.add_argument("--probability", "-P", type=float, default=0.3, help="Probabilidad de fallo (0.0 a 1.0)")
     parser.add_argument("id", type=str, help="Identificador único del dispositivo")

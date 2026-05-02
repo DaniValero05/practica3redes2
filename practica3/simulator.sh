@@ -9,7 +9,7 @@
 set -e
 
 # ── Configuración por defecto ──────────────────────────────────────────────────
-BROKER_HOST="${BROKER_HOST:-redes2.ii.uam.es}"
+BROKER_HOST="${BROKER_HOST:-localhost}"
 BROKER_PORT="${BROKER_PORT:-1883}"
 DB_PATH="${DB_PATH:-project/db.sqlite3}"
 

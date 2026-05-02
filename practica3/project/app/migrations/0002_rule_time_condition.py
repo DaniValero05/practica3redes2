@@ -1,0 +1,41 @@
+from django.db import migrations, models
+import django.db.models.deletion
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('app', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='rule',
+            name='condition_type',
+            field=models.CharField(
+                choices=[('numeric', 'Numérico'), ('time', 'Hora (HH:MM:SS)')],
+                default='numeric',
+                help_text='Tipo de condición: numérica o de hora',
+                max_length=10,
+            ),
+        ),
+        migrations.AddField(
+            model_name='rule',
+            name='condition_time',
+            field=models.CharField(
+                blank=True,
+                help_text='Hora a comparar en formato HH:MM:SS (si el tipo es hora)',
+                max_length=8,
+                null=True,
+            ),
+        ),
+        migrations.AlterField(
+            model_name='rule',
+            name='condition_value',
+            field=models.FloatField(
+                blank=True,
+                help_text='Valor numérico a comparar (si el tipo es numérico)',
+                null=True,
+            ),
+        ),
+    ]

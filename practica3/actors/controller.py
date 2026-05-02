@@ -1,10 +1,9 @@
 # controller.py
 # El RuleEngine está integrado en este mismo fichero para evitar problemas
 # de importación cuando se ejecuta el script desde directorios distintos.
-# Si en el futuro se quiere separar, basta con mover la clase RuleEngine
-# a rule_engine.py y sustituir la clase aquí por: from rule_engine import RuleEngine
 
 import argparse
+import os
 import sqlite3
 from datetime import datetime, timezone
 import paho.mqtt.client as mqtt
@@ -18,10 +17,19 @@ BASE_TOPIC = f"redes2/{GRUPO}/{PAREJA}"
 # Motor de reglas
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _time_to_seconds(time_str):
+    """Convierte HH:MM:SS a segundos totales desde medianoche."""
+    try:
+        t = datetime.strptime(time_str.strip(), "%H:%M:%S")
+        return t.hour * 3600 + t.minute * 60 + t.second
+    except ValueError:
+        return None
+
+
 class RuleEngine:
     """
     Evalúa los eventos recibidos contra las reglas almacenadas en la BD de Django.
-    Devuelve la lista de acciones a ejecutar sobre los actuadores.
+    Soporta condiciones numéricas y de hora (HH:MM:SS).
 
     Operadores soportados: ==, >, <
     """
@@ -38,16 +46,11 @@ class RuleEngine:
         acciones = []
 
         try:
-            valor_recibido = float(payload)
-        except ValueError:
-            print(f"[RuleEngine] Payload '{payload}' no es numérico, ignorado.")
-            return acciones
-
-        try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             query = """
-                SELECT r.operator, r.condition_value, d_target.uid, r.action_command
+                SELECT r.operator, r.condition_type, r.condition_value, r.condition_time,
+                       d_target.uid, r.action_command
                 FROM app_rule r
                 JOIN app_device d_trigger ON r.trigger_device_id = d_trigger.id
                 JOIN app_device d_target  ON r.target_device_id  = d_target.id
@@ -60,16 +63,46 @@ class RuleEngine:
             print(f"[RuleEngine] Error accediendo a la BD: {e}")
             return acciones
 
-        for operador, cond_value, target_uid, command in reglas:
-            cumplida = (
-                (operador == "==" and valor_recibido == cond_value) or
-                (operador == ">"  and valor_recibido >  cond_value) or
-                (operador == "<"  and valor_recibido <  cond_value)
-            )
+        for operador, cond_type, cond_value, cond_time, target_uid, command in reglas:
+            cumplida = False
+
+            if cond_type == "time":
+                payload_secs = _time_to_seconds(payload)
+                cond_secs = _time_to_seconds(cond_time) if cond_time else None
+
+                if payload_secs is None or cond_secs is None:
+                    print(f"[RuleEngine] Payload '{payload}' o condición '{cond_time}' no son horas válidas, ignorado.")
+                    continue
+
+                cumplida = (
+                    (operador == "==" and payload_secs == cond_secs) or
+                    (operador == ">"  and payload_secs >  cond_secs) or
+                    (operador == "<"  and payload_secs <  cond_secs)
+                )
+                cond_display = cond_time
+
+            else:
+                try:
+                    valor_recibido = float(payload)
+                except ValueError:
+                    print(f"[RuleEngine] Payload '{payload}' no es numérico, ignorado.")
+                    continue
+
+                if cond_value is None:
+                    print(f"[RuleEngine] Regla numérica sin condition_value. Ignorando.")
+                    continue
+
+                cumplida = (
+                    (operador == "==" and valor_recibido == cond_value) or
+                    (operador == ">"  and valor_recibido >  cond_value) or
+                    (operador == "<"  and valor_recibido <  cond_value)
+                )
+                cond_display = cond_value
+
             if cumplida:
                 print(
                     f"[RuleEngine] Regla cumplida: "
-                    f"si {device_id} {operador} {cond_value} → {target_uid} = {command}"
+                    f"si {device_id} {operador} {cond_display} → {target_uid} = {command}"
                 )
                 acciones.append({"target": target_uid, "command": command})
 
@@ -93,7 +126,7 @@ class Controller:
         self.rule_engine = RuleEngine(db_path)
         self.general_topic = f"{BASE_TOPIC}/#"
 
-        self.client = mqtt.Client(client_id=f"controller_{GRUPO}_{PAREJA}")
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=f"controller_{GRUPO}_{PAREJA}")
         self.client.on_connect    = self.on_connect
         self.client.on_disconnect = self.on_disconnect
         self.client.on_message    = self.on_message
@@ -103,21 +136,25 @@ class Controller:
     def is_device_registered(self, device_id):
         """Devuelve True si el device_id existe en la tabla app_device de Django."""
         try:
+            print(f"\n[DEBUG] Comprobando DB en ruta: {self.db_path}")
+
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
+
+            cursor.execute("SELECT * FROM app_device")
+            todos = cursor.fetchall()
+            print(f"[DEBUG] Contenido total de app_device: {todos}")
+
             cursor.execute("SELECT id FROM app_device WHERE uid = ?", (device_id,))
             result = cursor.fetchone()
             conn.close()
             return result is not None
-        except sqlite3.Error:
-            # BD no accesible → rechazamos por seguridad
+        except sqlite3.Error as e:
+            print(f"[DEBUG] Error de base de datos: {e}")
             return False
 
     def log_event(self, device_id, event_type, description):
-        """
-        Inserta un evento en app_event.
-        Usamos UTC explícito para ser coherentes con USE_TZ=True de Django.
-        """
+        """Inserta un evento en app_event."""
         try:
             now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
             conn = sqlite3.connect(self.db_path)
@@ -134,7 +171,7 @@ class Controller:
 
     # ── Callbacks MQTT ────────────────────────────────────────────────────────
 
-    def on_connect(self, client, _userdata, _flags, rc):
+    def on_connect(self, client, _userdata, _flags, rc, _properties):
         if rc == 0:
             print("Controlador conectado al broker.")
             client.subscribe(self.general_topic, qos=1)
@@ -142,13 +179,15 @@ class Controller:
         else:
             print(f"Error al conectar. Código: {rc}")
 
-    def on_disconnect(self, _client, _userdata, rc):
+    def on_disconnect(self, _client, _userdata, _flags, rc, _properties):
         if rc != 0:
             print(f"[!] Desconectado inesperadamente (código {rc}). Reconectando...")
 
     def on_message(self, client, _userdata, msg):
         topic   = msg.topic
         payload = msg.payload.decode("utf-8").strip()
+
+        print(f"\n[MQTT] Mensaje recibido en '{topic}': {payload}")
 
         parts = topic.split("/")
         if len(parts) < 4:
@@ -157,24 +196,19 @@ class Controller:
         device_id = parts[3]
         subtopic  = parts[4] if len(parts) > 4 else ""
 
-        # Ignoramos los /set que nosotros mismos publicamos para evitar bucles
         if subtopic == "set":
             return
 
-        # Seguridad: solo procesamos dispositivos registrados en Django
         if not self.is_device_registered(device_id):
             print(f"[!] Rechazado: '{device_id}' no está registrado.")
             return
 
         print(f"[+] '{device_id}' → {payload}")
 
-        # 1. Persistir telemetría
         self.log_event(device_id, "TELEMETRÍA", f"Valor recibido: {payload}")
 
-        # 2. Evaluar reglas
         actions = self.rule_engine.process_event(device_id, payload)
 
-        # 3. Ejecutar acciones sobre actuadores
         for act in actions:
             target  = act.get("target")
             command = act.get("command")
@@ -195,7 +229,6 @@ class Controller:
         print("-" * 50)
         try:
             self.client.connect(self.host, self.port, keepalive=60)
-            # reconnect_delay_set permite reconexión automática ante caídas del broker
             self.client.reconnect_delay_set(min_delay=1, max_delay=30)
             self.client.loop_forever(retry_first_connection=False)
         except ConnectionRefusedError:
@@ -210,12 +243,15 @@ class Controller:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def main():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    default_db_path = os.path.abspath(os.path.join(script_dir, "..", "project", "db.sqlite3"))
+
     parser = argparse.ArgumentParser(description="Controller del sistema domótico")
-    parser.add_argument("--host", "-H", type=str, default="redes2.ii.uam.es",
+    parser.add_argument("--host", "-H", type=str, default="localhost",
                         help="Host del broker MQTT")
     parser.add_argument("--port", "-p", type=int, default=1883,
                         help="Puerto del broker MQTT")
-    parser.add_argument("--database", "-d", type=str, default="db.sqlite3",
+    parser.add_argument("--database", "-d", type=str, default=default_db_path,
                         help="Ruta al fichero SQLite de Django")
     args = parser.parse_args()
 

@@ -113,13 +113,13 @@ class TestControllerConnection(unittest.TestCase):
         mock_cls.return_value = mock_client
         mock_client.loop_forever.side_effect = KeyboardInterrupt
 
-        ctrl = Controller("redes2.ii.uam.es", 1883, self.db)
+        ctrl = Controller("localhost", 1883, self.db)
         try:
             ctrl.start()
         except (KeyboardInterrupt, SystemExit):
             pass
 
-        mock_client.connect.assert_called_once_with("redes2.ii.uam.es", 1883, keepalive=60)
+        mock_client.connect.assert_called_once_with("localhost", 1883, keepalive=60)
 
     @patch("controller.mqtt.Client")
     def test_connect_failure_does_not_propagate(self, mock_cls):

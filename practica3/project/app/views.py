@@ -16,26 +16,26 @@ class IndexView(TemplateView):
 
 class DeviceListView(ListView):
     model = Device
-    template_name = "app/device/list.html"  # Antes era "list.html"
+    template_name = "app/device/list.html"
     context_object_name = "devices"
 
 
 class DeviceDetailView(DetailView):
     model = Device
-    template_name = "app/device/detail.html"  # Antes era "detail.html"
+    template_name = "app/device/detail.html"
     context_object_name = "device"
 
 
 class DeviceCreateView(CreateView):
     model = Device
-    template_name = "app/device/new.html"  # Antes era "new.html"
+    template_name = "app/device/new.html"
     fields = ["uid", "name", "is_sensor"]
     success_url = reverse_lazy("app:devices")
 
 
 class DeviceUpdateView(UpdateView):
     model = Device
-    template_name = "app/device/edit.html"  # Antes era "edit.html"
+    template_name = "app/device/edit.html"
     fields = ["uid", "name", "is_sensor"]
     success_url = reverse_lazy("app:devices")
 
@@ -59,7 +59,9 @@ class RuleCreateView(CreateView):
         "name",
         "trigger_device",
         "operator",
+        "condition_type",
         "condition_value",
+        "condition_time",
         "target_device",
         "action_command",
     ]
@@ -73,7 +75,9 @@ class RuleUpdateView(UpdateView):
         "name",
         "trigger_device",
         "operator",
+        "condition_type",
         "condition_value",
+        "condition_time",
         "target_device",
         "action_command",
     ]
@@ -84,7 +88,7 @@ class EventListView(ListView):
     model = Event
     template_name = "app/event/list.html"
     context_object_name = "events"
-    paginate_by = 20  # Para no saturar la página
+    paginate_by = 20
 
 
 def rule_remove(request, pk):
