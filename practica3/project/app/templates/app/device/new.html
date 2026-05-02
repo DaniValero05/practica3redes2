@@ -1,16 +1,27 @@
 {% extends 'app/base.html' %}
 
 {% block content %}
+<h2>Añadir Nuevo Dispositivo</h2>
+<p class="text-muted">Selecciona el tipo de dispositivo que deseas configurar:</p>
 
+<div class="list-group mt-4" style="max-width: 400px;">
+    <a href="{% url 'app:device_new_sensor' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+        <span><i class="bi-thermometer-half mr-2"></i> Sensor</span>
+        <i class="bi-chevron-right"></i>
+    </a>
+    
+    <a href="{% url 'app:device_new_switch' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+        <span><i class="bi-toggle-on mr-2"></i> Switch</span>
+        <i class="bi-chevron-right"></i>
+    </a>
+    
+    <a href="{% url 'app:device_new_clock' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+        <span><i class="bi-clock mr-2"></i> Clock</span>
+        <i class="bi-chevron-right"></i>
+    </a>
+</div>
 
-<h3>Add device</h3>
-
-<form action="{% url 'app:device_new' %}" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Submit">
-</form>
-
-<p><a href="{% url 'app:devices' %}">Back</a></p>
-
+<div class="mt-4">
+    <a class="btn btn-secondary" href="{% url 'app:devices' %}">Cancelar y volver a la lista</a>
+</div>
 {% endblock %}

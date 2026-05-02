@@ -1,10 +1,58 @@
 {% extends 'app/base.html' %}
+
 {% block content %}
-<h3>Crear Nueva Regla</h3>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">Guardar Regla</button>
-</form>
-<p><a href="{% url 'app:rules' %}">Cancelar</a></p>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'app:rules' %}">Reglas</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Crear Nueva</li>
+  </ol>
+</nav>
+
+<h2><i class="bi-gear-fill mr-2"></i>Crear Nueva Regla</h2>
+<p class="text-muted">Define la lógica condicional para automatizar tus dispositivos.</p>
+
+<div class="card mt-4 shadow-sm" style="max-width: 700px;">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+            
+            <div class="mt-4 border-top pt-3">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi-check-circle mr-1"></i> Guardar Regla
+                </button>
+                <a href="{% url 'app:rules' %}" class="btn btn-secondary ml-2">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Mejora visual para que el formulario no se vea tan apretado */
+    form p {
+        margin-bottom: 1.2rem;
+    }
+    input, select {
+        display: block;
+        width: 100%;
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+    }
+    .helptext {
+        display: block;
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+</style>
 {% endblock %}

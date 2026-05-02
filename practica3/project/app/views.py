@@ -26,18 +26,39 @@ class DeviceDetailView(DetailView):
     context_object_name = "device"
 
 
-class DeviceCreateView(CreateView):
-    model = Device
+class DeviceTypeSelectView(TemplateView):
+    # Esta vista solo carga el HTML con los botones de selección
     template_name = "app/device/new.html"
-    fields = ["uid", "name", "is_sensor"]
-    success_url = reverse_lazy("app:devices")
 
-
-class DeviceUpdateView(UpdateView):
+class SensorCreateView(CreateView):
     model = Device
-    template_name = "app/device/edit.html"
-    fields = ["uid", "name", "is_sensor"]
+    template_name = "app/device/new_sensor.html"
+    fields = ["uid", "name", "host", "port", "interval", "min_value", "max_value", "sensor_increment"]
     success_url = reverse_lazy("app:devices")
+    
+    def form_valid(self, form):
+        form.instance.device_type = 'sensor' # Fuerza el tipo automáticamente
+        return super().form_valid(form)
+
+class SwitchCreateView(CreateView):
+    model = Device
+    template_name = "app/device/new_switch.html"
+    fields = ["uid", "name", "host", "port", "probability"]
+    success_url = reverse_lazy("app:devices")
+
+    def form_valid(self, form):
+        form.instance.device_type = 'switch'
+        return super().form_valid(form)
+
+class ClockCreateView(CreateView):
+    model = Device
+    template_name = "app/device/new_clock.html"
+    fields = ["uid", "name", "host", "port", "start_time", "clock_increment", "rate"]
+    success_url = reverse_lazy("app:devices")
+
+    def form_valid(self, form):
+        form.instance.device_type = 'clock'
+        return super().form_valid(form)
 
 
 def device_remove(request, pk):

@@ -2,22 +2,40 @@ from django.db import models
 
 
 class Device(models.Model):
-    uid = models.CharField(
-        max_length=100,
-        unique=True,
-        help_text="Identificador único del dispositivo (ej. 1)",
-    )
-    name = models.CharField(
-        max_length=100, help_text="Nombre descriptivo (ej. Sensor Salón)"
-    )
-    is_sensor = models.BooleanField(
-        default=False,
-        help_text="¿Es un sensor? (Falso implica que es un interruptor o reloj)",
-    )
+    DEVICE_TYPES = [
+        ('sensor', 'Sensor'),
+        ('switch', 'Switch'),
+        ('clock', 'Clock'),
+    ]
+
+    # --- Campos Obligatorios (Comunes) ---
+    uid = models.CharField(max_length=100, unique=True, help_text="Identificador único (ej. 1)")
+    name = models.CharField(max_length=100, help_text="Nombre descriptivo")
+    device_type = models.CharField(max_length=10, choices=DEVICE_TYPES, default='sensor')
+
+    # --- Campos No Obligatorios (Comunes) ---
+    host = models.CharField(max_length=100, default="localhost", blank=True, null=True)
+    port = models.IntegerField(default=1883, blank=True, null=True)
+
+    # --- Específicos de Switch (No obligatorios) ---
+    probability = models.FloatField(blank=True, null=True, help_text="Probabilidad de fallo (0.0 a 1.0)")
+
+    # --- Específicos de Sensor (No obligatorios) ---
+    interval = models.FloatField(blank=True, null=True, help_text="Intervalo en segundos")
+    min_value = models.IntegerField(blank=True, null=True, help_text="Valor mínimo")
+    max_value = models.IntegerField(blank=True, null=True, help_text="Valor máximo")
+    sensor_increment = models.IntegerField(blank=True, null=True, help_text="Incremento")
+
+    # --- Específicos de Clock (No obligatorios) ---
+    start_time = models.CharField(max_length=8, blank=True, null=True, help_text="Hora de inicio (HH:MM:SS)")
+    clock_increment = models.IntegerField(blank=True, null=True, help_text="Incremento en segundos")
+    rate = models.FloatField(blank=True, null=True, help_text="Frecuencia (mensajes por segundo)")
 
     def __str__(self):
-        tipo = "Sensor" if self.is_sensor else "Actuador"
-        return f"{self.name} ({self.uid}) - {tipo}"
+        return f"{self.name} ({self.uid}) - {self.get_device_type_display()}"
+    def get_last_event(self):
+        # Busca el evento más reciente para este dispositivo específico
+        return Event.objects.filter(device_uid=self.uid).order_by('-timestamp').first()
 
 
 class Rule(models.Model):

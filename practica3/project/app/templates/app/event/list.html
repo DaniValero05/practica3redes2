@@ -1,24 +1,80 @@
 {% extends 'app/base.html' %}
+
 {% block content %}
-<h2>Historial de Eventos Internos</h2>
-<table class="table table-sm">
-    <thead>
-        <tr>
-            <th>Hora</th>
-            <th>Dispositivo</th>
-            <th>Tipo</th>
-            <th>Descripción</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for event in events %}
-        <tr class="{% if event.event_type == 'ACCIÓN' %}table-success{% endif %}">
-            <td>{{ event.timestamp|date:"H:i:s" }}</td>
-            <td>{{ event.device_uid }}</td>
-            <td>{{ event.event_type }}</td>
-            <td>{{ event.description }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="d-flex justify-content-between align-items-center">
+    <h2><i class="bi-activity mr-2"></i>Historial de Eventos</h2>
+    <div class="badge badge-info p-2">
+        <i class="bi-arrow-repeat mr-1"></i> Auto-refresco: 1s
+    </div>
+</div>
+
+<p class="text-muted">Monitorización en tiempo real de las mediciones y acciones del sistema.</p>
+
+<div class="card shadow-sm mt-3">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="thead-light">
+                <tr>
+                    <th style="width: 15%">Hora</th>
+                    <th style="width: 20%">Dispositivo (UID)</th>
+                    <th style="width: 15%">Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr class="{% if event.event_type == 'ACCIÓN' %}table-success{% elif event.event_type == 'ERROR' %}table-danger{% endif %}">
+                    <td class="font-weight-bold">{{ event.timestamp|date:"H:i:s" }}</td>
+                    <td><code>{{ event.device_uid }}</code></td>
+                    <td>
+                        <span class="badge {% if event.event_type == 'ACCIÓN' %}badge-success{% else %}badge-secondary{% endif %}">
+                            {{ event.event_type }}
+                        </span>
+                    </td>
+                    <td>{{ event.description }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">No hay eventos registrados todavía.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Paginación (opcional, si tienes muchos eventos) #}
+{% if is_paginated %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+    // Función para recargar la página cada 1000 milisegundos (1 segundo)
+    setTimeout(function(){
+       window.location.reload(1);
+    }, 1000);
+</script>
+
+<style>
+    /* Estilo para que las filas de ACCIÓN no sean demasiado intensas */
+    .table-success, .table-success > td {
+        background-color: rgba(40, 167, 69, 0.1) !important;
+    }
+    code {
+        color: #e83e8c;
+        background-color: #f8f9fa;
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+</style>
 {% endblock %}
