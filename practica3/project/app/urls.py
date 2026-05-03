@@ -6,7 +6,6 @@ app_name = "app"
 urlpatterns = [
     path("", views.IndexView.as_view(), name="index"),
     path("devices/", views.DeviceListView.as_view(), name="devices"),
-    path("device/<int:pk>/", views.DeviceDetailView.as_view(), name="device_detail"),
     path("device/new/", views.DeviceTypeSelectView.as_view(), name="device_new"),
     path("device/<int:pk>/remove/", views.device_remove, name="device_remove"),
     path("rules/", views.RuleListView.as_view(), name="rules"),
@@ -17,4 +16,5 @@ urlpatterns = [
     path("device/new/sensor/", views.SensorCreateView.as_view(), name="device_new_sensor"),
     path("device/new/switch/", views.SwitchCreateView.as_view(), name="device_new_switch"),
     path("device/new/clock/", views.ClockCreateView.as_view(), name="device_new_clock"),
+    path("device/<int:pk>/edit/", views.DeviceUpdateView.as_view(), name="device_edit"),
 ]

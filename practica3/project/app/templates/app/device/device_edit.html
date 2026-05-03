@@ -1,19 +1,20 @@
 {% extends 'app/base.html' %}
 
 {% block content %}
+<!-- Migas de pan para la navegación -->
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'app:rules' %}">Reglas</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'app:devices' %}">Dispositivos</a></li>
     <li class="breadcrumb-item active" aria-current="page">Editar</li>
   </ol>
 </nav>
 
-<h2><i class="bi-pencil-square mr-2"></i>Editar Regla: {{ form.instance.name }}</h2>
-<p class="text-muted">Modificando la lógica condicional de esta regla.</p>
+<h2><i class="bi-pencil-square mr-2"></i>Editar Dispositivo: {{ form.instance.name }}</h2>
+<p class="text-muted">Modificando los parámetros del dispositivo con UID: <code>{{ form.instance.uid }}</code></p>
 
 <div class="card mt-4 shadow-sm" style="max-width: 700px;">
     <div class="card-body">
-        <form method="post">
+        <form action="{% url 'app:device_edit' form.instance.id %}" method="post">
             {% csrf_token %}
             
             <div class="form-group">
@@ -21,10 +22,10 @@
             </div>
             
             <div class="mt-4 border-top pt-3">
-                <button type="submit" class="btn btn-success">
+                <button type="submit" class="btn btn-primary">
                     <i class="bi-save mr-1"></i> Guardar Cambios
                 </button>
-                <a href="{% url 'app:rules' %}" class="btn btn-secondary ml-2">
+                <a href="{% url 'app:devices' %}" class="btn btn-secondary ml-2">
                     Cancelar
                 </a>
             </div>
@@ -33,6 +34,7 @@
 </div>
 
 <style>
+    /* Estilos para adaptar automáticamente los campos generados por Django a Bootstrap */
     form p {
         margin-bottom: 1.2rem;
     }
@@ -51,6 +53,10 @@
         border: 1px solid #ced4da;
         border-radius: .25rem;
     }
+    input[type="checkbox"] {
+        width: auto;
+        display: inline-block;
+    }
     .helptext {
         display: block;
         font-size: 0.85rem;
@@ -58,4 +64,5 @@
         margin-top: 0.25rem;
     }
 </style>
+
 {% endblock %}

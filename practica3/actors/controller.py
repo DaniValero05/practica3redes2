@@ -264,7 +264,7 @@ class Controller:
             return
 
         # Guardamos el evento en la base de datos
-        self.log_event(device_id, "MEDICIÓN", f"Valor recibido: {payload}")
+        self.log_event(device_id, "MEDICIÓN", payload)
 
         # Pricesamos el evento y vemos que acciones se deben ejecutar en función de las reglas definidas
         actions = self.rule_engine.process_event(device_id, payload)
@@ -277,7 +277,7 @@ class Controller:
                 topic = f"{BASE_TOPIC}/{target}/set"
                 print(f"[CONTROLADOR] Acción: publicando '{command}' en {topic}")
                 # Guardamos el evento en la base de datos
-                self.log_event(target, "ACCIÓN", f"Orden '{command}' enviada por regla disparada por {device_id}",)
+                self.log_event(target, "ACCIÓN", command)
                 # Mandamos la petición por el topic correspondiente
                 client.publish(topic, command, qos=1)
 
