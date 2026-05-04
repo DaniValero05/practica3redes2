@@ -1,40 +1,41 @@
 from django.apps import AppConfig
 import sys
 import os
+import signal
 import subprocess
 from pathlib import Path
+
 
 class AppConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "app"
 
     def ready(self):
-        # 1. Evitar ejecución durante comandos de migración
         if any(cmd in sys.argv for cmd in ("migrate", "makemigrations")):
             return
 
-        # 2. Evitar la doble ejecución por el reloader de Django
         if os.environ.get('RUN_MAIN') != 'true':
             return
 
-        # Rutas relativas usando Pathlib
         base = Path(__file__).resolve().parent
         actors = base.parent.parent / "actors"
         db = base.parent / "db.sqlite3"
 
-        # 3. Iniciar el Controlador
-        subprocess.Popen([
-            sys.executable, 
-            str(actors / "controller.py"), 
-            "--database", 
-            str(db)
-        ])
+        # Arrancamos el controlador
+        subprocess.Popen([sys.executable, str(actors / "controller.py"), "--database", str(db)])
 
-        # 4. Iniciar Dispositivos ya registrados en la BD
         try:
             from app.models import Device
-            
+
             for device in Device.objects.all():
+                # Matar el proceso anterior si sigue vivo
+                if device.pid:
+                    try:
+                        os.kill(device.pid, signal.SIGTERM)
+                    except (ProcessLookupError, PermissionError):
+                        pass
+                    device.pid = None
+
                 if device.device_type == "sensor":
                     cmd = [
                         sys.executable, str(actors / "dummy-sensor.py"),
@@ -68,9 +69,9 @@ class AppConfig(AppConfig):
                 else:
                     continue
 
-                # Ejecutamos el script del actor en segundo plano
-                subprocess.Popen(cmd)
-                
+                proc = subprocess.Popen(cmd)
+                device.pid = proc.pid
+                device.save(update_fields=['pid'])
+
         except Exception as e:
-            # Si la base de datos no está lista, lo notificamos sin tirar el servidor
             print(f"[DJANGO] No se pudieron arrancar los actores: {e}")

@@ -21,8 +21,8 @@
             </div>
             
             <div class="mt-4 border-top pt-3">
-                <button type="submit" class="btn btn-success">
-                    <i class="bi-check-circle mr-1"></i> Guardar Regla
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi-save mr-1"></i> Guardar Regla
                 </button>
                 <a href="{% url 'app:rules' %}" class="btn btn-secondary ml-2">
                     Cancelar
@@ -33,9 +33,12 @@
 </div>
 
 <style>
-    /* Mejora visual para que el formulario no se vea tan apretado */
     form p {
         margin-bottom: 1.2rem;
+    }
+    form p label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
     }
     input, select {
         display: block;

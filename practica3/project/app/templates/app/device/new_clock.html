@@ -1,19 +1,66 @@
 {% extends 'app/base.html' %}
 
 {% block content %}
-<h2>Añadir Clock</h2>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'app:devices' %}">Dispositivos</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'app:device_new' %}">Añadir Dispositivo</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Reloj (Clock)</li>
+  </ol>
+</nav>
 
-<div class="card mt-4" style="max-width: 600px;">
+<h2><i class="bi-clock mr-2"></i>Añadir Dispositivo: Reloj (Clock)</h2>
+<p class="text-muted">Configura los parámetros para el nuevo reloj virtual.</p>
+
+<div class="card mt-4 shadow-sm" style="max-width: 700px;">
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
             
-            <div class="mt-4">
-                <button type="submit" class="btn btn-primary"><i class="bi-save"></i> Guardar Clock</button>
-                <a href="{% url 'app:device_new' %}" class="btn btn-secondary">Volver al menú</a>
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+            
+            <div class="mt-4 border-top pt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi-save mr-1"></i> Guardar Dispositivo
+                </button>
+                <a href="{% url 'app:device_new' %}" class="btn btn-secondary ml-2">
+                    Cancelar
+                </a>
             </div>
         </form>
     </div>
 </div>
+
+<style>
+    form p {
+        margin-bottom: 1.2rem;
+    }
+    form p label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    input, select {
+        display: block;
+        width: 100%;
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+    }
+    input[type="checkbox"] {
+        width: auto;
+        display: inline-block;
+    }
+    .helptext {
+        display: block;
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+</style>
 {% endblock %}

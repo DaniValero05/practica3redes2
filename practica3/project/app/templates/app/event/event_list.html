@@ -43,7 +43,7 @@
     </div>
 </div>
 
-{# Paginación (opcional, si tienes muchos eventos) #}
+{# Paginación #}
 {% if is_paginated %}
 <nav class="mt-4">
     <ul class="pagination justify-content-center">
@@ -59,14 +59,12 @@
 {% endif %}
 
 <script>
-    // Función para recargar la página cada 1000 milisegundos (1 segundo)
     setTimeout(function(){
        window.location.reload(1);
     }, 1000);
 </script>
 
 <style>
-    /* Estilo para que las filas de ACCIÓN no sean demasiado intensas */
     .table-success, .table-success > td {
         background-color: rgba(40, 167, 69, 0.1) !important;
     }

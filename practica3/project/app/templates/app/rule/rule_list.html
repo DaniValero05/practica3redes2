@@ -1,24 +1,28 @@
 {% extends 'app/base.html' %}
+
 {% block content %}
-<h2>Reglas de Automatización</h2>
-<a href="{% url 'app:rule_new' %}" class="btn btn-primary mb-3"><i class="bi-plus-circle"></i> Nueva Regla</a>
+<div class="d-flex justify-content-between align-items-center">
+    <h2>Reglas de Automatización</h2>
+</div>
+
+<a href="{% url 'app:rule_new' %}" class="top-menu" title="Añadir regla"><i class="bi-plus-circle" style="font-size: 1.5rem"></i></a>
 
 {% if rules %}
-<table class="table table-bordered table-striped">
-    <thead>
+<table class="table table-bordered table-striped shadow-sm mt-3">
+    <thead class="thead-light">
         <tr>
             <th>Nombre</th>
-            <th>Si... (Disparador)</th>
+            <th>Disparador</th>
             <th>Condición</th>
-            <th>Entonces... (Acción)</th>
-            <th>Opciones</th>
+            <th>Acción</th>
+            <th class="text-center">Opciones</th>
         </tr>
     </thead>
     <tbody>
         {% for rule in rules %}
         <tr>
             <td>{{ rule.name }}</td>
-            <td>{{ rule.trigger_device.name }} ({{ rule.trigger_device.uid }})</td>
+            <td>{{ rule.trigger_device.name }} (<code>{{ rule.trigger_device.uid }}</code>)</td>
             <td>
                 {% if rule.condition_type == "time" %}
                     {{ rule.operator }} {{ rule.condition_time }} <small class="text-muted">(hora)</small>
@@ -26,17 +30,63 @@
                     {{ rule.operator }} {{ rule.condition_value }} <small class="text-muted">(numérico)</small>
                 {% endif %}
             </td>
-            <td>{{ rule.target_device.uid }} = {{ rule.action_command }}</td>
-            <td>
-                <a class="btn btn-sm btn-info" href="{% url 'app:rule_edit' pk=rule.pk %}"><i class="bi-pencil"></i></a>
-                <a class="btn btn-sm btn-danger" href="{% url 'app:rule_remove' pk=rule.pk %}"><i class="bi-trash"></i></a>
+            <td><code>{{ rule.target_device.uid }}</code> = {{ rule.action_command }}</td>
+            <td class="text-center">
+                
+                <a class="btn btn-sm btn-outline-primary mr-1" href="{% url 'app:rule_edit' pk=rule.pk %}" title="Editar">
+                    <i class="bi-pencil"></i>
+                </a>
+                
+                <a class="btn btn-sm btn-outline-danger" 
+                   href="#" 
+                   data-toggle="modal" 
+                   data-target="#removeRuleModal" 
+                   onclick="set_selected_rule('{{ rule.id }}')"
+                   title="Eliminar">
+                   <i class="bi-trash"></i>
+                </a>
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<p>No hay reglas configuradas.</p>
+    <p class="mt-4 text-center text-muted">No hay reglas configuradas</p>
 {% endif %}
-<p><a href="{% url 'app:devices' %}">Ver Dispositivos</a></p>
+
+<div class="mt-4">
+    <a class="btn btn-secondary" href="{% url 'app:devices' %}">
+        <i class="bi-arrow-left mr-1"></i> Volver a Dispositivos
+    </a>
+</div>
+
+<div class="modal fade" id="removeRuleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Eliminar Regla</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>¿Estás seguro de que deseas eliminar esta regla de automatización?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <a class="btn btn-danger" id="removeRuleLink" href="#">Sí, eliminar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    function set_selected_rule(ruleId){
+        $("#removeRuleLink").attr("href", "/rule/" + ruleId + "/remove/");
+    }
+</script>
+
+<style>
+    code { color: #e83e8c; }
+</style>
 {% endblock %}
